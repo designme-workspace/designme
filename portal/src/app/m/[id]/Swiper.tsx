@@ -12,7 +12,7 @@ type Props = {
   firstName: string;
   cards: Card[];
   submitted: boolean;
-  // false when summaries are written later by the scheduled routine
+  // false when summaries are written by the Airtable AI automation
   instantSummary: boolean;
 };
 type Phase = "intro" | "swiping" | "notes" | "waiting" | "received";
@@ -45,7 +45,7 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted, instantSumm
   const [index, setIndex] = useState(Math.min(draft?.index ?? 0, cards.length));
   const [notes, setNotes] = useState(draft?.notes ?? "");
   const [note, setNote] = useState("");
-  // "received": answers saved; the summary appears later (routine mode, or AI timed out).
+  // "received": answers saved; the summary appears later (airtable mode, or AI timed out).
   const [phase, setPhase] = useState<Phase>(submitted ? (instantSummary ? "waiting" : "received") : draft ? (draft.index >= cards.length ? "notes" : "swiping") : "intro");
   const [error, setError] = useState("");
   const [drag, setDrag] = useState({ x: 0, active: false });
@@ -169,7 +169,7 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted, instantSumm
             <h2 className="text-xl font-semibold">Thanks, we&apos;ve got your picks! 🎉</h2>
             <p className="mt-2 text-sm text-muted">
               We&apos;re turning your picks into a written design direction. It will appear on this page and in your project hub
-              within a few hours, and your designer will share it with you in Slack.
+              within a few minutes, and your designer will share it with you in Slack.
             </p>
           </>
         )}

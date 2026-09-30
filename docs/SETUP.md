@@ -7,7 +7,7 @@ Everything is built. The n8n workflows are **switched off** until these steps ar
 | Variable | Value |
 |---|---|
 | `AIRTABLE_TOKEN` | Airtable PAT with read/write on *Paying Clients & Billing* |
-| `ANTHROPIC_API_KEY` | **Leave unset** to run AI on the Claude subscription via the scheduled routine (see `AI_ROUTINE.md`). Set it only if you want instant AI briefs and moodboard summaries billed to the API. |
+| `ANTHROPIC_API_KEY` | **Leave unset** to run AI on the Airtable AI automations (see `AI_AIRTABLE.md`). Set it only if you want instant AI briefs and moodboard summaries billed to the API. |
 | `N8N_EVENTS_WEBHOOK_URL` | `https://n8n-uzay.srv1834652.hstgr.cloud/webhook/2291171a-c1fc-4df4-9643-50b7585b9ae1/client-os-portal-events` |
 | `N8N_EVENTS_WEBHOOK_SECRET` | Must equal the value in WF-C2 → *Portal Events* → Options → *Only run if* (shared privately) |
 | `TEAM_KEY` | Must equal the `preview=` / `key=` value in the Airtable *Brief Preview Link* and *Regenerate Brief Link* formulas (shared privately) |

@@ -4,7 +4,7 @@ How DesignMe runs every client engagement, from payment to referral, and the too
 
 - **[docs/BLUEPRINT.md](docs/BLUEPRINT.md)**: the operating model (stages, owners, SLAs, surveys, handover, advocacy, roadmap)
 - **[docs/AUTOMATIONS.md](docs/AUTOMATIONS.md)**: n8n workflows and the portal event contract
-- **[docs/AI_ROUTINE.md](docs/AI_ROUTINE.md)**: how AI briefs and moodboard summaries run on the Claude subscription
+- **[docs/AI_AIRTABLE.md](docs/AI_AIRTABLE.md)**: how AI briefs and moodboard summaries run as Airtable AI automations (no API key)
 - **[docs/SETUP.md](docs/SETUP.md)**: go-live checklist
 - **[portal/](portal/)**: client portal (Next.js): onboarding, AI project brief, status page, pulse/NPS surveys
 

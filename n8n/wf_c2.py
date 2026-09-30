@@ -38,10 +38,10 @@ const bullets = (arr) => (arr || []).map(x => '• ' + x).join('\n');
 const msgs = [];
 switch (e.type) {
   case 'onboarding.completed':
-    msgs.push({ channel: intCh, text: '📝 *' + name + '*: the client completed onboarding.' + (e.decisionMaker ? '\nDecision-maker: ' + e.decisionMaker : '') + (e.deadline ? '\nHard deadline: ' + e.deadline : '') + '\nThe AI brief will be ready within about an hour (you will get a message here), and the ClickUp board is being created now.' });
+    msgs.push({ channel: intCh, text: '📝 *' + name + '*: the client completed onboarding.' + (e.decisionMaker ? '\nDecision-maker: ' + e.decisionMaker : '') + (e.deadline ? '\nHard deadline: ' + e.deadline : '') + '\nThe AI brief will be ready in a few minutes (you will get a message here), and the ClickUp board is being created now.' });
     break;
   case 'brief.ready':
-    // Posted by WF-C3 when Brief Status becomes Internal Review (covers API and routine mode).
+    // Posted by WF-C3 when Brief Status becomes Internal Review (covers API and Airtable AI mode).
     break;
   case 'brief.failed':
     msgs.push({ channel: intCh, text: '🚨 *' + name + '*: brief generation failed (' + (e.error || 'unknown error') + '). Retry with the Regenerate Brief Link: ' + record });
@@ -55,7 +55,7 @@ switch (e.type) {
     if (extCh) msgs.push({ channel: extCh, text: '🎉 Thanks ' + (e.approvedBy || '') + ' for approving the project brief! It is now our shared source of truth.\n*Next step:* the kickoff call. Grab a time that suits you: ' + CONFIG.kickoffBookingUrl });
     break;
   case 'moodboard.completed':
-    // Posted by WF-C3 when Moodboard Status becomes Completed (covers API and routine mode).
+    // Posted by WF-C3 when Moodboard Status becomes Completed (covers API and Airtable AI mode).
     break;
   case 'moodboard.failed':
     msgs.push({ channel: intCh, text: '🚨 *' + name + '*: the client finished the moodboard but the AI summary failed (' + (e.error || 'unknown') + '). Their picks are saved in Airtable (Moodboards). Set Status back to In Progress and ask the dev team, or summarise manually.' });

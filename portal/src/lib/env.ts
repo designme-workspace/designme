@@ -15,7 +15,7 @@ export const env = {
   // Shared secret for internal endpoints called by n8n / the team.
   internalApiKey: () => required("INTERNAL_API_KEY"),
   // "api": the portal calls Claude directly (needs ANTHROPIC_API_KEY).
-  // "routine": AI work is queued in Airtable and done by a scheduled Claude Code routine.
-  aiMode: (): "api" | "routine" => (process.env.ANTHROPIC_API_KEY ? "api" : "routine"),
+  // "airtable": AI work is queued in Airtable and done by Airtable AI automations.
+  aiMode: (): "api" | "airtable" => (process.env.ANTHROPIC_API_KEY ? "api" : "airtable"),
   portalUrl: () => process.env.PORTAL_URL ?? "http://localhost:3000",
 };

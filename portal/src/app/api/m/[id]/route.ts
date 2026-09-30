@@ -45,8 +45,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     "Client Notes": notes,
   });
 
-  // In routine mode the scheduled Claude Code routine writes the summary.
-  if (env.aiMode() === "routine") return Response.json({ ok: true });
+  // In airtable mode the "Client OS · AI moodboard summary" automation writes it.
+  if (env.aiMode() === "airtable") return Response.json({ ok: true });
 
   after(async () => {
     const projectId = mb.fields.Project?.[0];

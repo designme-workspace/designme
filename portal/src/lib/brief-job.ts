@@ -4,11 +4,11 @@ import { emitEvent } from "./events";
 import { getProject, updateProject } from "./projects";
 
 // Generates the brief for a project and records the result in Airtable, or
-// queues it for the Claude Code routine when no API key is configured.
+// queues it for the Airtable AI automation when no API key is configured.
 // Runs after the HTTP response (via `after`) because generation takes a while.
 export async function runBriefJob(projectId: string): Promise<void> {
-  if (env.aiMode() === "routine") {
-    // Picked up by the scheduled Claude Code routine (see docs/AI_ROUTINE.md).
+  if (env.aiMode() === "airtable") {
+    // The "Client OS · AI project brief" Airtable automation picks this up (see docs/AI_AIRTABLE.md).
     await updateProject(projectId, { "Brief Status": "Queued" });
     return;
   }
