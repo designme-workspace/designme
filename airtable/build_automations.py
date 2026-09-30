@@ -115,7 +115,7 @@ let responses = {};
 try { responses = JSON.parse(cfg.responses || '{}'); } catch (e) {}
 const lib = base.getTable('Moodboard Library');
 const ids = Object.keys(responses);
-const { records } = await lib.selectRecordsAsync({ fields: ['Title', 'Category', 'Style Tags', 'Description'] });
+const { records } = await lib.selectRecordsAsync({ fields: ['Title', 'Category', 'Style Tags', 'Description', 'AI Visual Notes'] });
 const byId = new Map(records.map(r => [r.id, r]));
 const label = { love: 'LOVED', like: 'LIKED', dislike: 'NOT FOR ME' };
 const lines = [];
@@ -125,7 +125,8 @@ for (const rating of ['love', 'like', 'dislike']) {
     if (!r) continue;
     const note = responses[id].note ? ' | client note: "' + responses[id].note + '"' : '';
     lines.push('[' + label[rating] + '] ' + r.getCellValueAsString('Category') + ': ' + r.getCellValueAsString('Title') +
-      ' | tags: ' + r.getCellValueAsString('Style Tags') + ' | ' + r.getCellValueAsString('Description') + note);
+      ' | tags: ' + r.getCellValueAsString('Style Tags') + ' | ' + r.getCellValueAsString('Description') +
+      ' | what the image looks like: ' + r.getCellValueAsString('AI Visual Notes').replace(/\s*\n\s*/g, '; ') + note);
   }
 }
 output.set('digest', lines.join('\n'));
@@ -143,7 +144,7 @@ await base.getTable('Moodboards').updateRecordAsync(cfg.recordId, {
 });
 """
 
-MOOD_INSTRUCTIONS = """You are the design director at DesignMe, a design agency. A client just went through a moodboard, rating design references as LOVED, LIKED or NOT FOR ME, sometimes with a note. Each reference below is described by its category, title, style tags and a short description written by our designers.
+MOOD_INSTRUCTIONS = """You are the design director at DesignMe, a design agency. A client just went through a moodboard, rating design references as LOVED, LIKED or NOT FOR ME, sometimes with a note. Each reference below is described by its category, title, style tags, a short description written by our designers, and AI notes describing what the image actually looks like.
 
 Find the patterns across what they loved versus rejected: colour, contrast, typography, imagery, layout density, tone, craft details. The client's own notes outrank your inferences. Be specific ("high-contrast serif headlines on warm off-white", not "clean and modern"). Where choices contradict each other, say so in open_questions rather than papering over it.
 
@@ -167,7 +168,7 @@ def moodboard_automation():
                 {"operator": "isNotEmpty", "operands": {"tuple": [M["responses"]]}}]}}}},
         "nodes": [
             {"key": "digest", "type": "customScript",
-             "description": "Reads the client's ratings from 'Responses JSON' on the triggering moodboard, looks up each rated reference in the 'Moodboard Library' table (Title, Category, Style Tags, Description) and outputs one text line per reference labelled LOVED, LIKED or NOT FOR ME, including the client's note. No external calls.",
+             "description": "Reads the client's ratings from 'Responses JSON' on the triggering moodboard, looks up each rated reference in the 'Moodboard Library' table (Title, Category, Style Tags, Description, AI Visual Notes) and outputs one text line per reference labelled LOVED, LIKED or NOT FOR ME, including the client's note. No external calls.",
              "inputs": {"script": DIGEST_JS.strip(), "inputObj": {"responses": cell(M["responses"])}},
              "outputSchema": [{"name": "digest", "type": "string"}]},
             {"key": "writeDirection", "type": "aiGenerateStructuredOutput", "description": "Write the moodboard direction with Airtable AI",

@@ -28,9 +28,14 @@ Links currently use **`https://designme-portal-cb1qwjn7j-design-me1.vercel.app`*
 - Scopes: `channels:manage`, `groups:write`, `chat:write`, `users:read`, `users:read.email`, `conversations.connect:write` (Slack Connect needs a paid plan). Reinstall the app after adding scopes.
 - Optional: add Slack user IDs for people who should join every client channel in WF-C1 → *Plan Setup* → `teamSlackUserIds`.
 
-## 4. Stripe
+## 4. Starting a project (Attio)
 
-Activating WF-C1 registers its Stripe webhook automatically (credential "Adrian Personal Stripe API"). Before a client pays, create their **Project** in Airtable with *Contact Email* set to the email they will pay with, *Service Type* and *Proposal Scope* filled in, and a *Project Lead*.
+Move the deal to **Paid** in Attio. WF-C4 creates the Client (or reuses it for a repeat client), the Deal and a new Project in Airtable, then starts onboarding. For the best brief, fill these on the Attio deal first:
+- **Service** (e.g. "Branding, Website", "Product Web/Mobile")
+- **Notes**: paste the signed proposal / scope. It becomes *Proposal Scope*. If empty, #designme-operations is told to paste it into Airtable.
+- An **associated person** with an email (the client contact), and the right **Deal owner** (becomes Project Lead).
+
+A Stripe payment for a project that is already onboarding is ignored. A Stripe checkout from an unknown email alerts #designme-operations.
 
 ## 5. Test run (recommended)
 

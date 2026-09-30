@@ -2,11 +2,12 @@
 
 The portal owns the client-facing pages and the AI (brief and moodboard summaries). **n8n owns everything that touches Slack, ClickUp, Stripe and scheduling.** Airtable (*Paying Clients & Billing*) is the shared source of truth.
 
-All workflows are tagged `client-os` in n8n and are **built but switched off**. Generators live in `n8n/` (`python3 wf_c1.py` prints SDK code). Secrets are read from env vars and are never committed.
+All workflows are tagged `client-os` in n8n and are **active**. Generators live in `n8n/` (`python3 wf_c1.py` prints SDK code). Secrets are read from env vars and are never committed.
 
 | Workflow | n8n ID | Triggers | What it does |
 |---|---|---|---|
-| **WF-C1 Payment → Onboarding** | `jjgTfkt1ZLtoeKBn` | Stripe `checkout.session.completed` / `invoice.paid`; GET webhook from the Airtable *Start Onboarding Link* (Wise/manual) | Matches payment to a Project by Contact Email, generates the Portal Token, creates private `int-`/`ext-` channels (reuses existing), invites team + Project Lead, Slack Connect invite to the client, writes stage/channels to Airtable, welcomes the client, notifies `int-` and #new-projects |
+| **WF-C4 Attio Paid → Project** | `2xKE7qww1FKLLF5k` | Attio webhook on deal stage changes (`adc5df4b-…`) | When a deal moves to **Paid**: upserts the Client (by Attio company) and Deal (by Attio deal ID), creates a new Project (services, contact, deal owner as Project Lead, deal Notes as Proposal Scope), then calls WF-C1's start link. One deal = one project; a deal that already has a project is skipped |
+| **WF-C1 Payment → Onboarding** | `jjgTfkt1ZLtoeKBn` | Stripe `checkout.session.completed` / `invoice.paid`; GET webhook from WF-C4 or the Airtable *Start Onboarding Link* (Wise/manual) | Matches payment to a Project by Contact Email, generates the Portal Token, creates private `int-`/`ext-` channels (reuses existing), invites team + Project Lead, Slack Connect invite to the client, writes stage/channels to Airtable, welcomes the client, notifies `int-` and #new-projects |
 | **WF-C2 Portal Events** | `BErHVD75aSCBKElM` | POST webhook from the portal (`X-DesignMe-Secret`) | Slack messages for every event. `onboarding.completed` builds the ClickUp board from templates. `brief.approved` schedules Week 1 / Month 1 / Quarterly pulse surveys |
 | **WF-C3 Brief Shared + Daily Run** | `eluoknCehoAarnFn` | Airtable polls (Brief Status → *Shared with Client*; Moodboard Status → *Sent*); weekdays 09:00 Europe/London | Sends the brief / moodboard link to `ext-`. Daily: sends due pulse surveys, 3-day reminders, expiry at 10 days, onboarding nudges (48h client / 96h team), overdue brief review/approval, overdue client updates (Health → Amber), morning digest in #designme-operations |
 

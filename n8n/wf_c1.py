@@ -33,16 +33,18 @@ return out;
 """, [{"source": "Stripe", "eventType": "checkout.session.completed", "email": "jane@acme.com", "emailSafe": "jane@acme.com", "payerName": "Jane Doe", "amount": 5000, "currency": "USD", "reference": "cs_test"}]))
 
 N.append(airtable("findProject", "Airtable: Find Project Awaiting Onboarding", [480, 0], "GET", "/" + T_PROJECTS,
-    query=[("filterByFormula", Expr("AND(LOWER({Contact Email})='{{ $json.emailSafe }}', {Portal Token}='')")), ("maxRecords", "1")],
+    query=[("filterByFormula", Expr("LOWER({Contact Email})='{{ $json.emailSafe }}'")), ("maxRecords", "20")],
     output=[{"records": [{"id": "recXXXXXXXXXXXXXX", "fields": {}}]}]))
 
 N.append(code("resolveStripe", "Resolve Stripe Match", [720, 0], r"""
 const payments = $('Normalize Stripe Payment').all();
 const out = [];
 $input.all().forEach((r, i) => {
-  const rec = (r.json.records || [])[0];
+  const recs = r.json.records || [];
+  const rec = recs.find(x => !(x.fields || {})['Portal Token']);
   const p = payments[i].json;
-  if (!rec && p.eventType !== 'checkout.session.completed') return;
+  // Already onboarding (e.g. started from Attio) or a renewal invoice: nothing to do.
+  if (!rec && (recs.length || p.eventType !== 'checkout.session.completed')) return;
   out.push({ json: Object.assign({}, p, { projectId: rec ? rec.id : '', matched: Boolean(rec) }) });
 });
 return out;
@@ -51,7 +53,7 @@ return out;
 N.append(if_true("isMatched", "Project Found?", [960, 0], "{{ $json.matched }}"))
 
 N.append(slack("alertUnmatched", "Slack: Alert Unmatched Payment", [1200, 160], "chat.postMessage",
-    Expr('{{ JSON.stringify({ channel: "C087P172QLF", text: "💳 Stripe payment received from *" + $json.email + "* (" + $json.amount + " " + $json.currency + ", ref " + $json.reference + ") but no Airtable project is waiting for onboarding.\\nCreate the Project in Airtable (Paying Clients & Billing → Projects) with Contact Email = " + $json.email + ", then click its *Start Onboarding Link*." }) }}')))
+    Expr('{{ JSON.stringify({ channel: "C087P172QLF", text: "💳 Stripe payment received from *" + $json.email + "* (" + $json.amount + " " + $json.currency + ", ref " + $json.reference + ") but no Airtable project uses this email.\\nMark the deal as *Paid* in Attio (that creates the project and starts onboarding), or create the Project in Airtable with Contact Email = " + $json.email + " and click its *Start Onboarding Link*." }) }}')))
 
 N.append(trigger("manualStart", "n8n-nodes-base.webhook", 2.1, "Manual Start (Airtable link)", [0, 320],
     {"httpMethod": "GET", "path": "client-os-start-onboarding", "responseMode": "onReceived",
@@ -60,9 +62,11 @@ N.append(trigger("manualStart", "n8n-nodes-base.webhook", 2.1, "Manual Start (Ai
     [{"query": {"projectId": "recXXXXXXXXXXXXXX", "key": "x"}}]))
 
 N.append(code("normalizeManual", "Normalize Manual Start", [240, 320], r"""
-const id = String(($input.first().json.query || {}).projectId || '');
+const q = $input.first().json.query || {};
+const id = String(q.projectId || '');
 if (!/^rec[A-Za-z0-9]{14}$/.test(id)) return [];
-return [{ json: { source: 'Manual', projectId: id, amount: null, currency: '', reference: 'Confirmed manually in Airtable', email: '' } }];
+// WF-C4 (Attio deal marked Paid) passes source/amount/currency/reference.
+return [{ json: { source: q.source || 'Manual', projectId: id, amount: q.amount ? Number(q.amount) : null, currency: q.currency || '', reference: q.reference || 'Confirmed manually in Airtable', email: '' } }];
 """, [{"source": "Manual", "projectId": "recXXXXXXXXXXXXXX", "amount": None, "currency": "", "reference": "Confirmed manually in Airtable", "email": ""}]))
 
 N.append(airtable("getProject", "Airtable: Get Project", [1200, 320], "GET",
@@ -219,7 +223,7 @@ NOTE = sticky_note("note", (
     "## Client OS · WF-C1 Payment → Onboarding\n\n"
     "**Stripe:** a paid checkout/invoice is matched to an Airtable Project by Contact Email (with no Portal Token yet). "
     "An unmatched checkout alerts #designme-operations; unmatched invoices (retainer renewals) are ignored.\n\n"
-    "**Manual / Wise:** the Airtable field *Start Onboarding Link* calls this workflow's webhook for that project.\n\n"
+    "**Attio / Manual / Wise:** WF-C4 (Attio deal marked Paid) or the Airtable field *Start Onboarding Link* calls this workflow's webhook for that project.\n\n"
     "Then: create private `int-`/`ext-` channels (or reuse), invite the team and Project Lead, Slack Connect invite to the client, "
     "write token/stage/channels to Airtable, welcome the client and notify the team.\n\n"
     "Edit `CONFIG` in **Plan Setup** for the portal URL, alert channels and team Slack IDs. "
