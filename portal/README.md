@@ -7,9 +7,9 @@ The client-facing part of the DesignMe Client Operating System (see [`../docs/BL
 | `/p/{token}` | Client | Project status page: where we are, what we need from you, latest update |
 | `/p/{token}/onboarding` | Client | Onboarding questionnaire (sections adapt to the project's service types) |
 | `/p/{token}/brief` | Client | AI-generated project brief to approve or request changes |
-| `/p/{token}/brief?preview={INTERNAL_API_KEY}` | Team | Draft preview including the internal section (expectation gaps, watch-outs, upsells) |
+| `/p/{token}/brief?preview={TEAM_KEY}` | Team | Draft preview including the internal section (expectation gaps, watch-outs, upsells) |
 | `/s/{token}` | Client | Pulse / NPS survey (Week 1, Month 1, Quarterly, Final) |
-| `POST /api/internal/projects/{recordId}/brief` | n8n / team | Regenerate a brief (header `x-api-key: INTERNAL_API_KEY`) |
+| `POST /api/internal/projects/{recordId}/brief` | n8n / team | Regenerate a brief (header `x-api-key: INTERNAL_API_KEY`, or `GET ?key=TEAM_KEY` from the Airtable link) |
 
 Airtable (*Paying Clients & Billing* base → **Projects**, **Pulse Surveys**) is the source of truth. The portal reads and writes it and sends every client action to n8n as an event (`src/lib/events.ts`), and n8n handles Slack, ClickUp and email.
 

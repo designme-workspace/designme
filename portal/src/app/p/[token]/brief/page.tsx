@@ -12,8 +12,8 @@ export default async function BriefPage({ params, searchParams }: PageProps<"/p/
   const project = await getProjectByToken(token);
   if (!project) notFound();
   const f = project.fields;
-  // Team preview: ?preview=<INTERNAL_API_KEY> shows drafts and the internal section.
-  const teamKey = process.env.INTERNAL_API_KEY;
+  // Team preview: ?preview=<TEAM_KEY> shows drafts and the internal section.
+  const teamKey = process.env.TEAM_KEY;
   const isTeam = Boolean(teamKey) && preview === teamKey;
 
   if (!f["Brief JSON"] || (!isTeam && !VISIBLE_TO_CLIENT.includes(f["Brief Status"] ?? ""))) {

@@ -2,7 +2,7 @@
 // are injected into every AI-generated brief, so change them here (and in
 // docs/BLUEPRINT.md) rather than in prompts.
 export const STANDARDS = {
-  responseTime: "We reply to Slack messages and emails within 1 business day (usually same day).",
+  responseTime: "We reply to every Slack message and email within 1 business day at the latest (usually same day).",
   updateCadence:
     "Every Monday you get a plan for the week, and every Thursday a progress update (Loom or written) in your shared Slack channel.",
   feedbackWindow:

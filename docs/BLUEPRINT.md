@@ -141,7 +141,7 @@ Everything goes into a shared "Handover" folder linked on the Project. Then the 
 
 Kept in code at `portal/src/lib/standards.ts`. Change them there.
 
-- Reply within 1 business day.
+- Reply within 1 business day at the latest (usually same day).
 - Monday plan + Thursday progress update in Slack.
 - Consolidated feedback from one decision-maker within 2 business days.
 - 2 revision rounds per deliverable.
