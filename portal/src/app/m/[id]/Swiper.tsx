@@ -5,8 +5,17 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { Button, Card as Panel, Eyebrow, inputClass } from "@/components/ui";
 import type { Card, Rating, Responses } from "@/lib/moodboard";
 
-type Props = { id: string; type: string; intro: string; firstName: string; cards: Card[]; submitted: boolean };
-type Phase = "intro" | "swiping" | "notes" | "waiting" | "failed";
+type Props = {
+  id: string;
+  type: string;
+  intro: string;
+  firstName: string;
+  cards: Card[];
+  submitted: boolean;
+  // false when summaries are written later by the scheduled routine
+  instantSummary: boolean;
+};
+type Phase = "intro" | "swiping" | "notes" | "waiting" | "received";
 
 const noopSubscribe = () => () => {};
 
@@ -28,7 +37,7 @@ function loadDraft(key: string): Draft | null {
 
 const RATING_LABEL: Record<Rating, string> = { dislike: "Not for me", like: "Like", love: "Love" };
 
-function SwiperInner({ id, type, intro, firstName, cards, submitted }: Props) {
+function SwiperInner({ id, type, intro, firstName, cards, submitted, instantSummary }: Props) {
   const router = useRouter();
   const storageKey = `designme-moodboard-${id}`;
   const [draft] = useState(() => loadDraft(storageKey));
@@ -36,7 +45,8 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted }: Props) {
   const [index, setIndex] = useState(Math.min(draft?.index ?? 0, cards.length));
   const [notes, setNotes] = useState(draft?.notes ?? "");
   const [note, setNote] = useState("");
-  const [phase, setPhase] = useState<Phase>(submitted ? "waiting" : draft ? (draft.index >= cards.length ? "notes" : "swiping") : "intro");
+  // "received": answers saved; the summary appears later (routine mode, or AI timed out).
+  const [phase, setPhase] = useState<Phase>(submitted ? (instantSummary ? "waiting" : "received") : draft ? (draft.index >= cards.length ? "notes" : "swiping") : "intro");
   const [error, setError] = useState("");
   const [drag, setDrag] = useState({ x: 0, active: false });
   const start = useRef(0);
@@ -97,7 +107,7 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted }: Props) {
         router.refresh();
       } else if (data.status === "Failed" || Date.now() - started > 4 * 60_000) {
         clearInterval(timer);
-        setPhase("failed");
+        setPhase("received");
       }
     }, 3000);
     return () => clearInterval(timer);
@@ -114,7 +124,7 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted }: Props) {
       try {
         localStorage.removeItem(storageKey);
       } catch {}
-      setPhase("waiting");
+      setPhase(instantSummary ? "waiting" : "received");
     } else {
       setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Something went wrong. Please try again.");
     }
@@ -145,7 +155,7 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted }: Props) {
     );
   }
 
-  if (phase === "waiting" || phase === "failed") {
+  if (phase === "waiting" || phase === "received") {
     return (
       <Panel className="text-center">
         {phase === "waiting" ? (
@@ -157,7 +167,10 @@ function SwiperInner({ id, type, intro, firstName, cards, submitted }: Props) {
         ) : (
           <>
             <h2 className="text-xl font-semibold">Thanks, we&apos;ve got your picks! 🎉</h2>
-            <p className="mt-2 text-sm text-muted">Your designer will share the summary with you in Slack shortly.</p>
+            <p className="mt-2 text-sm text-muted">
+              We&apos;re turning your picks into a written design direction. It will appear on this page and in your project hub
+              within a few hours, and your designer will share it with you in Slack.
+            </p>
           </>
         )}
       </Panel>

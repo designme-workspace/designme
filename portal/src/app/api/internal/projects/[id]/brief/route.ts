@@ -26,7 +26,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!/^rec[A-Za-z0-9]{14}$/.test(id)) return new Response("Invalid record id", { status: 400 });
   after(() => runBriefJob(id));
   return new Response(
-    "<p style='font-family:sans-serif'>Regenerating the brief with your internal notes. The team will get a Slack message when it's ready (about 2 minutes). You can close this tab.</p>",
+    env.aiMode() === "routine"
+      ? "<p style='font-family:sans-serif'>Queued. The brief will be rewritten with your internal notes on the next hourly run, and the team will get a Slack message when it's ready. You can close this tab.</p>"
+      : "<p style='font-family:sans-serif'>Regenerating the brief with your internal notes. The team will get a Slack message when it's ready (about 2 minutes). You can close this tab.</p>",
     { headers: { "Content-Type": "text/html" } },
   );
 }

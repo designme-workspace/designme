@@ -22,6 +22,7 @@ export type ServiceType = (typeof SERVICE_TYPES)[number];
 
 export type BriefStatus =
   | "Not Started"
+  | "Queued"
   | "Generating"
   | "Internal Review"
   | "Shared with Client"

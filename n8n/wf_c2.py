@@ -38,16 +38,10 @@ const bullets = (arr) => (arr || []).map(x => '• ' + x).join('\n');
 const msgs = [];
 switch (e.type) {
   case 'onboarding.completed':
-    msgs.push({ channel: intCh, text: '📝 *' + name + '*: the client completed onboarding.' + (e.decisionMaker ? '\nDecision-maker: ' + e.decisionMaker : '') + (e.deadline ? '\nHard deadline: ' + e.deadline : '') + '\nThe AI brief is generating (about 2 minutes) and the ClickUp board is being created.' });
+    msgs.push({ channel: intCh, text: '📝 *' + name + '*: the client completed onboarding.' + (e.decisionMaker ? '\nDecision-maker: ' + e.decisionMaker : '') + (e.deadline ? '\nHard deadline: ' + e.deadline : '') + '\nThe AI brief will be ready within about an hour (you will get a message here), and the ClickUp board is being created now.' });
     break;
   case 'brief.ready':
-    msgs.push({ channel: intCh, text: [
-      '🧠 *' + name + '*: brief draft ready for review (target: within 1 business day).',
-      'Preview (team only): ' + (f['Brief Preview Link'] || record),
-      (e.expectationGaps || []).length ? '\n⚠️ *Expectation gaps*\n' + bullets(e.expectationGaps) : '',
-      (e.openQuestions || []).length ? '\n❓ *Open questions for kickoff*\n' + bullets(e.openQuestions) : '',
-      '\nNeeds fixes? Add them to *Brief Internal Notes* and open the *Regenerate Brief Link*. Happy with it? Set *Brief Status* to *Shared with Client*: ' + record
-    ].filter(Boolean).join('\n') });
+    // Posted by WF-C3 when Brief Status becomes Internal Review (covers API and routine mode).
     break;
   case 'brief.failed':
     msgs.push({ channel: intCh, text: '🚨 *' + name + '*: brief generation failed (' + (e.error || 'unknown error') + '). Retry with the Regenerate Brief Link: ' + record });
@@ -60,19 +54,9 @@ switch (e.type) {
     msgs.push({ channel: intCh, text: '✅ *' + name + '*: brief approved by ' + (e.approvedBy || 'the client') + '. Book the kickoff within 3 business days. Week 1 / Month 1 / Quarterly check-ins are scheduled.' });
     if (extCh) msgs.push({ channel: extCh, text: '🎉 Thanks ' + (e.approvedBy || '') + ' for approving the project brief! It is now our shared source of truth.\n*Next step:* the kickoff call. Grab a time that suits you: ' + CONFIG.kickoffBookingUrl });
     break;
-  case 'moodboard.completed': {
-    const c = e.counts || {};
-    msgs.push({ channel: intCh, text: [
-      '🎨 *' + name + '*: moodboard completed (' + (c.love || 0) + ' loved · ' + (c.like || 0) + ' liked · ' + (c.dislike || 0) + ' passed).',
-      '*' + (e.headline || '') + '*' + ((e.keywords || []).length ? ' · ' + e.keywords.join(', ') : ''),
-      (e.designerNotes || []).length ? '\n🧭 *Designer notes*\n' + bullets(e.designerNotes) : '',
-      (e.avoid || []).length ? '\n🚫 *Avoid*\n' + bullets(e.avoid) : '',
-      (e.openQuestions || []).length ? '\n❓ *Clarify with the client*\n' + bullets(e.openQuestions) : '',
-      '\nFull direction: https://airtable.com/appSs3Jhav8TAxBkg/tblBl9EIAInz4oqBl/' + e.moodboardId
-    ].filter(Boolean).join('\n') });
-    if (extCh) msgs.push({ channel: extCh, text: '🎨 Thanks for going through the moodboard! Your summary is in your project hub, and your designer is reviewing your picks now.' });
+  case 'moodboard.completed':
+    // Posted by WF-C3 when Moodboard Status becomes Completed (covers API and routine mode).
     break;
-  }
   case 'moodboard.failed':
     msgs.push({ channel: intCh, text: '🚨 *' + name + '*: the client finished the moodboard but the AI summary failed (' + (e.error || 'unknown') + '). Their picks are saved in Airtable (Moodboards). Set Status back to In Progress and ask the dev team, or summarise manually.' });
     break;

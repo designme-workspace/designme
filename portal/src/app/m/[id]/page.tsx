@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Card as Panel, Eyebrow, List } from "@/components/ui";
+import { env } from "@/lib/env";
 import { getCards, getMoodboard, type Direction, type Responses } from "@/lib/moodboard";
 import Swiper from "./Swiper";
 
@@ -86,6 +87,7 @@ export default async function MoodboardPage({ params }: PageProps<"/m/[id]">) {
       firstName={firstName}
       cards={cards}
       submitted={f.Status === "In Progress" || f.Status === "Failed"}
+      instantSummary={env.aiMode() === "api"}
     />
   );
 }

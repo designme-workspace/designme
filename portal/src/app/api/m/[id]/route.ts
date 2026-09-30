@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { env } from "@/lib/env";
 import { emitEvent } from "@/lib/events";
 import { getCards, getMoodboard, summarizeMoodboard, updateMoodboard, type Rating, type Responses } from "@/lib/moodboard";
 
@@ -43,6 +44,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     "Responses JSON": JSON.stringify(responses, null, 2),
     "Client Notes": notes,
   });
+
+  // In routine mode the scheduled Claude Code routine writes the summary.
+  if (env.aiMode() === "routine") return Response.json({ ok: true });
 
   after(async () => {
     const projectId = mb.fields.Project?.[0];

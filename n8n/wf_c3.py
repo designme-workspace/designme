@@ -16,8 +16,8 @@ N.append(trigger("briefShared", "n8n-nodes-base.airtableTrigger", 1, "Airtable: 
      "baseId": {"__rl": True, "mode": "id", "value": "appSs3Jhav8TAxBkg"},
      "tableId": {"__rl": True, "mode": "id", "value": T_PROJECTS},
      "triggerField": "Brief Status Changed At",
-     "additionalFields": {"formula": "{Brief Status}='Shared with Client'",
-                          "fields": "Project Name,Brief Status,Portal Token,Contact Name,Slack INT Channel ID,Slack EXT Channel ID"}},
+     "additionalFields": {"formula": "OR({Brief Status}='Shared with Client', {Brief Status}='Internal Review')",
+                          "fields": "Project Name,Brief Status,Portal Token,Contact Name,Slack INT Channel ID,Slack EXT Channel ID,Brief JSON,Brief Preview Link"}},
     [{"id": "recXXXXXXXXXXXXXX", "fields": {"Project Name": "Acme: Website Redesign", "Brief Status": "Shared with Client", "Portal Token": "abc"}}],
     credentials=AIRTABLE_CRED))
 
@@ -26,7 +26,22 @@ const out = [];
 for (const item of $input.all()) {
   const r = item.json;
   const f = r.fields || {};
-  if (f['Brief Status'] !== 'Shared with Client' || !f['Portal Token']) continue;
+  if (!f['Portal Token']) continue;
+  if (f['Brief Status'] === 'Internal Review') {
+    let brief = {};
+    try { brief = JSON.parse(f['Brief JSON'] || '{}'); } catch (e) {}
+    const internal = brief.internal || {};
+    const bullets = (arr) => (arr || []).map(x => '• ' + x).join('\n');
+    out.push({ json: { kind: 'slack', channel: f['Slack INT Channel ID'] || CONFIG.opsChannel, text: [
+      '🧠 *' + (f['Project Name'] || 'Project') + '*: brief draft ready for review (target: within 1 business day).',
+      'Preview (team only): ' + (f['Brief Preview Link'] || CONFIG.airtableProjectUrl + r.id),
+      (internal.expectation_gaps || []).length ? '\n⚠️ *Expectation gaps*\n' + bullets(internal.expectation_gaps) : '',
+      (brief.open_questions || []).length ? '\n❓ *Open questions for kickoff*\n' + bullets(brief.open_questions) : '',
+      '\nNeeds fixes? Add them to *Brief Internal Notes* and open the *Regenerate Brief Link*. Happy with it? Set *Brief Status* to *Shared with Client*: ' + CONFIG.airtableProjectUrl + r.id
+    ].filter(Boolean).join('\n') } });
+    continue;
+  }
+  if (f['Brief Status'] !== 'Shared with Client') continue;
   const url = CONFIG.portalUrl + '/p/' + f['Portal Token'] + '/brief';
   const first = String(f['Contact Name'] || '').split(' ')[0] || 'there';
   if (f['Slack EXT Channel ID']) out.push({ json: { kind: 'slack', channel: f['Slack EXT Channel ID'], text: '📄 Hi ' + first + ', your project brief is ready!\nIt covers goals, scope (and what is not included), the plan, and how we will work together:\n' + url + '\nPlease approve it or request changes within *2 business days* so we can book the kickoff.' } });
@@ -43,8 +58,8 @@ N.append(trigger("moodboardSent", "n8n-nodes-base.airtableTrigger", 1, "Airtable
      "baseId": {"__rl": True, "mode": "id", "value": "appSs3Jhav8TAxBkg"},
      "tableId": {"__rl": True, "mode": "id", "value": "tblBl9EIAInz4oqBl"},
      "triggerField": "Status Changed At",
-     "additionalFields": {"formula": "{Status}='Sent'",
-                          "fields": "Name,Status,Type,Moodboard Link,EXT Channel ID,INT Channel ID,Contact Name"}},
+     "additionalFields": {"formula": "OR({Status}='Sent', {Status}='Completed')",
+                          "fields": "Name,Status,Type,Moodboard Link,EXT Channel ID,INT Channel ID,Contact Name,Summary,Designer Notes,Direction JSON,Loved,Liked,Disliked"}},
     [{"id": "recXXXXXXXXXXXXXX", "fields": {"Name": "Acme · Website", "Status": "Sent"}}],
     credentials=AIRTABLE_CRED))
 
@@ -53,9 +68,25 @@ const out = [];
 for (const item of $input.all()) {
   const r = item.json;
   const f = r.fields || {};
-  if (f['Status'] !== 'Sent') continue;
   const ext = (f['EXT Channel ID'] || [])[0];
   const int = (f['INT Channel ID'] || [])[0] || 'C087P172QLF';
+  if (f['Status'] === 'Completed') {
+    let d = {};
+    try { d = JSON.parse(f['Direction JSON'] || '{}'); } catch (e) {}
+    const bullets = (arr) => (arr || []).map(x => '• ' + x).join('\n');
+    const n = (k) => (f[k] || []).length;
+    out.push({ json: { kind: 'slack', channel: int, text: [
+      '🎨 *' + (f['Name'] || 'Moodboard') + '* completed (' + n('Loved') + ' loved · ' + n('Liked') + ' liked · ' + n('Disliked') + ' passed).',
+      '*' + (d.headline || '') + '*' + ((d.keywords || []).length ? ' · ' + d.keywords.join(', ') : ''),
+      (d.designer_notes || []).length ? '\n🧭 *Designer notes*\n' + bullets(d.designer_notes) : '',
+      (d.avoid || []).length ? '\n🚫 *Avoid*\n' + bullets(d.avoid) : '',
+      (d.open_questions || []).length ? '\n❓ *Clarify with the client*\n' + bullets(d.open_questions) : '',
+      '\nClient summary: ' + f['Moodboard Link']
+    ].filter(Boolean).join('\n') } });
+    if (ext) out.push({ json: { kind: 'slack', channel: ext, text: '🎨 Your moodboard summary is ready: ' + f['Moodboard Link'] + '\nYour designer is using it as the starting point. Tell us here if anything feels off.' } });
+    continue;
+  }
+  if (f['Status'] !== 'Sent') continue;
   const first = String((f['Contact Name'] || [])[0] || '').split(' ')[0] || 'there';
   if (ext) out.push({ json: { kind: 'slack', channel: ext, text: '🎨 Hi ' + first + ', your moodboard is ready! Swipe through ' + (f['Type'] || 'design') + ' references and tell us what you love. It takes about 5 minutes and shapes everything we design next:\n' + f['Moodboard Link'] + '\nPlease complete it within *3 business days*.' } });
   out.push({ json: { kind: 'slack', channel: int, text: ext ? '🎨 Moodboard sent to the client: *' + (f['Name'] || '') + '*. Summary will land here when they finish.' : '⚠️ Moodboard *' + (f['Name'] || '') + '* is marked Sent but the project has no ext- channel. Share manually: ' + f['Moodboard Link'] } });
