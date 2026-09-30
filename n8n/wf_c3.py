@@ -2,7 +2,7 @@
 from sdk import *
 
 CONFIG_JS = r"""const CONFIG = {
-  portalUrl: 'https://portal.designme.agency',
+  portalUrl: 'https://designme-portal-cb1qwjn7j-design-me1.vercel.app',
   opsChannel: 'C087P172QLF',
   airtableProjectUrl: 'https://airtable.com/appSs3Jhav8TAxBkg/tblcAZMc0kF3drvsm/'
 };

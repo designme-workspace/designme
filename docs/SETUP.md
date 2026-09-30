@@ -18,7 +18,7 @@ Redeploy after changing them.
 
 ## 2. Portal URL
 
-Links assume **`https://portal.designme.agency`**. If the portal lives elsewhere, update it in:
+Links currently use **`https://designme-portal-cb1qwjn7j-design-me1.vercel.app`**. When the portal moves to a stable domain (e.g. `portal.designme.agency`), update it in:
 - n8n WF-C1 → *Plan Setup* → `CONFIG.portalUrl`
 - n8n WF-C3 → *Compose Brief Shared* and *Plan Daily Actions* → `CONFIG.portalUrl`
 - Airtable formulas: Projects → *Brief Preview Link*, *Regenerate Brief Link*, *Client Hub Link*; Moodboards → *Moodboard Link*

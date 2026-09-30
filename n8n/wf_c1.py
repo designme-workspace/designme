@@ -71,7 +71,7 @@ N.append(airtable("getProject", "Airtable: Get Project", [1200, 320], "GET",
 
 N.append(code("planSetup", "Plan Setup", [1440, 320], r"""
 const CONFIG = {
-  portalUrl: 'https://portal.designme.agency',
+  portalUrl: 'https://designme-portal-cb1qwjn7j-design-me1.vercel.app',
   opsChannel: 'C087P172QLF',
   newProjectsChannel: 'C09L1R9MK9C',
   // Slack user IDs added to every new int-/ext- channel (e.g. founders, ops).
@@ -110,7 +110,7 @@ return [{ json: {
   existingIntId: f['Slack INT Channel ID'] || '',
   existingExtId: f['Slack EXT Channel ID'] || ''
 } }];
-""", [{"config": {"portalUrl": "https://portal.designme.agency", "opsChannel": "C087P172QLF", "newProjectsChannel": "C09L1R9MK9C", "teamSlackUserIds": []}, "projectId": "recXXXXXXXXXXXXXX", "projectName": "Acme: Website Redesign", "clientName": "Acme", "clientId": "recCCCCCCCCCCCCCC", "contactName": "Jane", "contactEmail": "jane@acme.com", "leadEmail": "luke@designme.agency", "source": "Stripe", "amount": 5000, "currency": "USD", "reference": "cs_test", "token": "abc", "intName": "int-acme", "extName": "ext-acme", "existingIntId": "", "existingExtId": ""}]))
+""", [{"config": {"portalUrl": "https://designme-portal-cb1qwjn7j-design-me1.vercel.app", "opsChannel": "C087P172QLF", "newProjectsChannel": "C09L1R9MK9C", "teamSlackUserIds": []}, "projectId": "recXXXXXXXXXXXXXX", "projectName": "Acme: Website Redesign", "clientName": "Acme", "clientId": "recCCCCCCCCCCCCCC", "contactName": "Jane", "contactEmail": "jane@acme.com", "leadEmail": "luke@designme.agency", "source": "Stripe", "amount": 5000, "currency": "USD", "reference": "cs_test", "token": "abc", "intName": "int-acme", "extName": "ext-acme", "existingIntId": "", "existingExtId": ""}]))
 
 N.append(slack("createInt", "Slack: Create INT Channel", [1680, 320], "conversations.create",
     Expr("{{ JSON.stringify({ name: $json.intName, is_private: true }) }}")))
