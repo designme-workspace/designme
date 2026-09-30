@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, Eyebrow, List } from "@/components/ui";
+import { getMoodboard } from "@/lib/moodboard";
 import { getProjectByToken, stageIndex, type Project } from "@/lib/projects";
 
 type Step = { label: string; from: number; to: number };
@@ -32,7 +33,14 @@ export default async function ProjectHub({ params }: PageProps<"/p/[token]">) {
   const paused = f.Stage === "Paused";
   const clientActions = (f["Client Actions"] ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
 
+  const moodboards = (await Promise.all((f.Moodboards ?? []).map(getMoodboard))).filter(
+    (m) => m && m.fields.Status !== "Draft",
+  );
+  const openMoodboard = moodboards.find((m) => m!.fields.Status === "Sent");
+  const doneMoodboard = moodboards.find((m) => m!.fields.Status === "Completed");
+
   if (!f["Onboarding Completed At"]) clientActions.unshift("Complete your onboarding questionnaire");
+  if (openMoodboard) clientActions.unshift("Go through your moodboard (about 5 minutes)");
   if (f["Brief Status"] === "Shared with Client") clientActions.unshift("Review and approve your project brief");
 
   return (
@@ -88,6 +96,16 @@ export default async function ProjectHub({ params }: PageProps<"/p/[token]">) {
           {!f["Onboarding Completed At"] && (
             <Link href={`/p/${token}/onboarding`} className="rounded-full bg-accent px-4 py-2 font-medium text-accent-foreground">
               Start onboarding →
+            </Link>
+          )}
+          {openMoodboard && (
+            <Link href={`/m/${openMoodboard.id}`} className="rounded-full bg-accent px-4 py-2 font-medium text-accent-foreground">
+              Start moodboard →
+            </Link>
+          )}
+          {doneMoodboard && (
+            <Link href={`/m/${doneMoodboard.id}`} className="rounded-full border border-border px-4 py-2 font-medium">
+              Your moodboard summary →
             </Link>
           )}
           {["Shared with Client", "Client Approved", "Changes Requested"].includes(f["Brief Status"] ?? "") && (

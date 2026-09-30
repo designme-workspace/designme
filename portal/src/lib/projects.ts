@@ -58,6 +58,7 @@ export type ProjectFields = {
   "Latest Update"?: string;
   "Client Actions"?: string;
   "Latest NPS"?: number;
+  Moodboards?: string[];
 };
 
 export type Project = AirtableRecord<ProjectFields>;

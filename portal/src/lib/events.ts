@@ -6,7 +6,9 @@ export type PortalEvent =
   | "brief.failed"
   | "brief.approved"
   | "brief.changes_requested"
-  | "pulse.completed";
+  | "pulse.completed"
+  | "moodboard.completed"
+  | "moodboard.failed";
 
 // Sends an event to n8n, which fans it out to Slack (INT-/EXT- channels),
 // ClickUp and email. Failures are logged, never thrown: the client's action

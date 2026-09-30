@@ -9,6 +9,7 @@ The client-facing part of the DesignMe Client Operating System (see [`../docs/BL
 | `/p/{token}/brief` | Client | AI-generated project brief to approve or request changes |
 | `/p/{token}/brief?preview={TEAM_KEY}` | Team | Draft preview including the internal section (expectation gaps, watch-outs, upsells) |
 | `/s/{token}` | Client | Pulse / NPS survey (Week 1, Month 1, Quarterly, Final) |
+| `/m/{moodboardRecordId}` | Client | Moodboard Swiper, then the AI taste summary once completed |
 | `POST /api/internal/projects/{recordId}/brief` | n8n / team | Regenerate a brief (header `x-api-key: INTERNAL_API_KEY`, or `GET ?key=TEAM_KEY` from the Airtable link) |
 
 Airtable (*Paying Clients & Billing* base → **Projects**, **Pulse Surveys**) is the source of truth. The portal reads and writes it and sends every client action to n8n as an event (`src/lib/events.ts`), and n8n handles Slack, ClickUp and email.
@@ -28,11 +29,12 @@ Deploy to Vercel (root directory `portal`), add the same env vars, and point `po
 - **Questions:** `src/lib/questions.ts`
 - **Brief structure and AI instructions:** `src/lib/brief.ts`
 - **Promises we make to clients** (used in every brief): `src/lib/standards.ts`
+- **Moodboard categories and AI instructions:** `src/lib/moodboard.ts`
 - **Brand colours:** CSS variables at the top of `src/app/globals.css`
 
 ## Testing locally without credentials
 
-`scripts/mock-services.mjs` mocks Airtable, the Claude API and the n8n webhook on port 4010, with a test project (`/p/test-token-1234567890`) and survey (`/s/pulse-token-1234567890`):
+`scripts/mock-services.mjs` mocks Airtable, the Claude API and the n8n webhook on port 4010, with a test project (`/p/test-token-1234567890`), survey (`/s/pulse-token-1234567890`) and moodboard (`/m/recMOODBOARD00001`):
 
 ```bash
 node scripts/mock-services.mjs &

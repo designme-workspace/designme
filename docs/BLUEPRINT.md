@@ -21,7 +21,7 @@
 | 3 | Brief Review | AI brief generated | Project Lead | Reviews brief | PM reviews **< 1 business day**. Client reviews **< 2 business days** | Slack `int-` alert with expectation gaps; PM sets *Shared with Client* → email + `ext-` post |
 | 4 | Brief Approved | Client approves in portal | Project Lead | Books kickoff | Kickoff **< 3 business days** after approval | Pulse surveys scheduled; kickoff task in ClickUp |
 | 5 | Discovery | Kickoff call | Project Lead | Joins kickoff, answers discovery | Discovery summary **< 2 days** after kickoff | (Phase 2) AI discovery summary |
-| 6 | Moodboard | Discovery approved | Designer | Swipes moodboard | Client completes **< 3 days** | (Phase 2) Moodboard Swiper + AI taste summary |
+| 6 | Moodboard | Discovery approved | Designer | Swipes moodboard | Client completes **< 3 days** | Moodboard Swiper + AI taste summary; link posted when Status = Sent |
 | 7 | Design | Moodboard approved | Designer | Reviews designs | Per brief timeline | Mon/Thu update reminders, overdue alerts |
 | 8 | Development (web) | Design approved | Developer | Reviews staging | Per brief timeline | Same as above |
 | 9 | Revisions | Review delivered | Designer | Consolidated feedback | Feedback **< 2 business days**, 2 rounds included | "Waiting on client" nudges |
@@ -63,12 +63,14 @@ On submit, the portal generates the **Project Brief** with Claude from three inp
 
 **PM review (≤ 1 business day):** open `…/p/{token}/brief?preview={INTERNAL_API_KEY}`. Wrong? Add corrections to `Brief Internal Notes` and hit *Regenerate*. Right? Set `Brief Status` = **Shared with Client**. The client gets an email and an `ext-` post, and can **Approve** or **Request changes** in the portal. Approval is timestamped. This is the fix for "lost in translation".
 
-## 3. Discovery & Moodboard *(Phase 2)*
+## 3. Discovery & Moodboard
 
-- **Discovery questionnaire + kickoff call.** A recording or transcript plus answers go to an AI discovery summary, which the client approves.
-- **Moodboard Swiper:** a shareable link where the client swipes through curated design references (layouts, type, colour, imagery, illustration, motion). Each card is ❤️ Love / 👍 Like / 👎 Not for me, with an optional "why".
-  - **Library:** one reusable tagged library (by service, style, industry, colour, type). The designer tops it up with 10–20 project-specific picks before sending.
-  - **Output:** a visual board of what they loved, and an AI written summary ("gravitates to high-contrast editorial type, dislikes gradients, …"). It is saved to the Project and posted to `int-`, and it feeds the design brief.
+- **Discovery questionnaire + kickoff call** *(next)*: a recording or transcript plus answers go to an AI discovery summary, which the client approves.
+- **Moodboard Swiper** *(built)*: the client swipes through design references and rates each one ❤️ Love / 👍 Like / 👎 Not for me, with an optional "why".
+  1. **The team decides the type.** In Airtable → *Moodboards*, create a record, link the Project and pick **Type** (Website / Branding / Product / UI-UX). The client only sees references of that type.
+  2. **Library:** *Moodboard Library* is one reusable, tagged library (Service Type, Category, Style Tags, short Description). Leave *Project* empty for shared references, or link a Project to add 10–20 client-specific picks. To hand-pick an exact set, fill *Items* on the moodboard instead.
+  3. Set **Status = Sent**. n8n posts the link in `ext-` and the client swipes (about 5 minutes, section by section, keyboard or swipe on mobile).
+  4. **Output:** a visual board of what they loved and a written direction written by Claude, which looks at the images: headline, summary, keywords, loves, avoid, colour, typography, imagery, layout. The client sees their summary. The team gets *Designer Notes* and open questions in Airtable and in `int-`.
 
 ## 4. Delivery & accountability
 
@@ -124,10 +126,10 @@ Everything goes into a shared "Handover" folder linked on the Project. Then the 
 
 | Phase | Scope | Status |
 |---|---|---|
-| **1** | Blueprint, Airtable schema, portal (onboarding → AI brief → client approval, status page, pulse/NPS form) | **Built** (needs deploy + n8n) |
-| 1b | n8n: payment intake (Stripe/Wise), Slack channels, emails, portal-event router, pulse scheduler | Needs Slack, Gmail, ClickUp credentials in n8n |
-| 2 | Discovery questionnaire + AI summary, **Moodboard Swiper** | Next |
-| 3 | Accountability engine: ClickUp templates, overdue digests, feedback-due nudges, Monday health review | |
+| **1** | Blueprint, Airtable schema, portal (onboarding → AI brief → client approval, status page, pulse/NPS form) | ✅ Built, portal deployed |
+| 1b | n8n WF-C1/C2/C3: payment intake, Slack channels, ClickUp board from templates, event alerts, pulse scheduler, daily accountability run | ✅ Built, switched off until go-live checks pass (see SETUP.md) |
+| 2 | **Moodboard Swiper** ✅ built · Discovery questionnaire + AI summary (next) | In progress |
+| 3 | Accountability engine: ClickUp overdue-task digests, client feedback-due nudges, Monday health review | Partly built (daily run) |
 | 4 | Handover checklists + sign-off, advocacy sequence, referral tracking | |
 
 ## Data model (Airtable, *Paying Clients & Billing*)
@@ -135,6 +137,8 @@ Everything goes into a shared "Handover" folder linked on the Project. Then the 
 - **Clients**: existing. Status `Onboarding / Active / Paused / Churned`.
 - **Deals**, **Invoices**: existing.
 - **Projects** *(new)*: Stage, Health, Service Type, Portal Token, contact, payment source/ref, onboarding timestamps and answers, Proposal Scope, Brief Status/JSON/Summary/Internal Notes/Client Feedback/Approved At, dates, Project Lead, Designers, ClickUp list, Slack EXT/INT channels, Latest Update, Client Actions, Next Client Update Due, Latest NPS.
+- **Moodboard Library** *(new)*: tagged references (Service Type, Category, Style Tags, Description, Active, optional Project).
+- **Moodboards** *(new)*: one per client round (Project, Type, Status, Items, Loved/Liked/Disliked, Summary, Designer Notes, Direction JSON, Moodboard Link).
 - **Pulse Surveys** *(new)*: Project, Type, Status, Token, NPS (+ Category formula), Communication / Quality / Timeliness, Expectations Met, Going Well, Could Improve, Open To Testimonial, Follow-up Needed / Owner / Notes.
 
 ## Operating standards (promised in every brief)

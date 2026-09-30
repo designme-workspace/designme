@@ -36,6 +36,34 @@ for (const item of $input.all()) {
 return out;
 """, [{"kind": "slack", "channel": "C1", "text": "hi"}]))
 
+# --- C. Moodboard sent to client (poll every minute) ---
+N.append(trigger("moodboardSent", "n8n-nodes-base.airtableTrigger", 1, "Airtable: Moodboard Status Changed", [0, -200],
+    {"pollTimes": {"item": [{"mode": "everyMinute"}]},
+     "authentication": "airtableTokenApi",
+     "baseId": {"__rl": True, "mode": "id", "value": "appSs3Jhav8TAxBkg"},
+     "tableId": {"__rl": True, "mode": "id", "value": "tblBl9EIAInz4oqBl"},
+     "triggerField": "Status Changed At",
+     "additionalFields": {"formula": "{Status}='Sent'",
+                          "fields": "Name,Status,Type,Moodboard Link,EXT Channel ID,INT Channel ID,Contact Name"}},
+    [{"id": "recXXXXXXXXXXXXXX", "fields": {"Name": "Acme · Website", "Status": "Sent"}}],
+    credentials=AIRTABLE_CRED))
+
+N.append(code("composeMoodboard", "Compose Moodboard Sent", [240, -200], r"""
+const out = [];
+for (const item of $input.all()) {
+  const r = item.json;
+  const f = r.fields || {};
+  if (f['Status'] !== 'Sent') continue;
+  const ext = (f['EXT Channel ID'] || [])[0];
+  const int = (f['INT Channel ID'] || [])[0] || 'C087P172QLF';
+  const first = String((f['Contact Name'] || [])[0] || '').split(' ')[0] || 'there';
+  if (ext) out.push({ json: { kind: 'slack', channel: ext, text: '🎨 Hi ' + first + ', your moodboard is ready! Swipe through ' + (f['Type'] || 'design') + ' references and tell us what you love. It takes about 5 minutes and shapes everything we design next:\n' + f['Moodboard Link'] + '\nPlease complete it within *3 business days*.' } });
+  out.push({ json: { kind: 'slack', channel: int, text: ext ? '🎨 Moodboard sent to the client: *' + (f['Name'] || '') + '*. Summary will land here when they finish.' : '⚠️ Moodboard *' + (f['Name'] || '') + '* is marked Sent but the project has no ext- channel. Share manually: ' + f['Moodboard Link'] } });
+  out.push({ json: { kind: 'airtable', table: 'tblBl9EIAInz4oqBl', id: r.id, fields: { 'Sent At': new Date().toISOString() } } });
+}
+return out;
+""", [{"kind": "slack", "channel": "C1", "text": "hi"}]))
+
 # --- B. Daily run (weekdays 09:00) ---
 N.append(trigger("daily", "n8n-nodes-base.scheduleTrigger", 1.3, "Weekdays 09:00", [0, 400],
     {"rule": {"interval": [{"field": "cronExpression", "expression": "0 0 9 * * 1-5"}]}}, [{}]))
@@ -161,6 +189,9 @@ export default workflow('client-os-wf-c3', 'Client OS · WF-C3 Brief Shared + Da
   .add(briefShared)
   .to(composeShared)
   .to(routeKind.onCase(0, postSlack).onCase(1, patchRecord))
+  .add(moodboardSent)
+  .to(composeMoodboard)
+  .to(routeKind)
   .add(daily)
   .to(getProjects)
   .to(getPulses)
